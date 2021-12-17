@@ -5,6 +5,10 @@ on:
       - main
   pull_request: {}
 
+env:
+  REGISTRY: ghcr.io
+  REPOSITORY: ${{ github.repository }}
+  
 jobs:
   deploy:
     name: 🚀 Deploy
