@@ -8,7 +8,7 @@ on:
 env:
   REGISTRY: ghcr.io
   REPOSITORY: ${{ github.repository }}
-  
+
 jobs:
   deploy:
     name: 🚀 Deploy
@@ -54,5 +54,5 @@ jobs:
       - name: 🚀 Deploy
         run: |
           echo ${{ secrets.KUBE_CONFIG }} | base64 -d > ${KUBECONFIG}
-          kubectl delete pods --selector=app=ahmed-blog
+          kubectl delete pods --selector=app=ahmed-blog-app
 
