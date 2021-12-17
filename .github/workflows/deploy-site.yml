@@ -1,0 +1,54 @@
+name: 🚀 Deploy
+on:
+  push:
+    branches:
+      - main
+  pull_request: {}
+
+jobs:
+  deploy:
+    name: 🚀 Deploy
+    runs-on: ubuntu-latest
+    # only build/deploy main branch on pushes
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+
+    steps:
+      - name: 🛑 Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.6.0
+        with:
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v2
+      
+      - name: Log in to the Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}
+
+      - name: Build and push Docker image to Github packages
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+
+      - name: Kubernetes set context
+        uses: Azure/k8s-set-context@v1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: 🚀 Deploy
+        run: |
+          echo ${{ secrets.KUBE_CONFIG }} | base64 -d > ${KUBECONFIG}
+          kubectl delete pods --selector=app=ahmed-blog
+
